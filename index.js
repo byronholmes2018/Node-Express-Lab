@@ -17,6 +17,7 @@ server.get('/api/posts', (req,res)=>{
 })
 server.get('/api/posts/:userId',(req,res)=>{
   const id = req.params.userId;
+
   db.findById(id).then(user=>{
     if(user[0].id==id) {
       res.status(200).json(user)
@@ -28,16 +29,29 @@ server.get('/api/posts/:userId',(req,res)=>{
 });
 server.post('/api/posts', (req,res)=>{
   const userInfo = req.body
-  console.log(userInfo)
   db.insert(userInfo)
     .then(result=>{
-      console.log(result);
       res.status(201).json(result)
     })
     .catch(err=>res.status(500).json({error: err}))
 });
-server.put('/api/posts:userId', (req,res)=>{
+server.put('/api/posts/:userId', (req,res)=>{
   const id = req.params.userId;
+  if(!req.body.title || !req.body.contents){
+    res.status(400).json({errorMessage: "Please provide contents and title for post"})
+  }
+  db.findById(id)
+    .then(result=>{
+      if(result){
+      db.update(id, req.body)
+        .then(result=>{
+          res.status(200).json(result)
+        })
+        .catch(err =>{
+          res.status(400).json({message: "The post with the specified ID does not exist." })
+        })}
+    })
+    .catch(err=>res.status(500).json({error:err}))
 
 });
 server.delete('/api/posts/:userId', (req,res)=>{
