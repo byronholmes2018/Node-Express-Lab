@@ -42,31 +42,32 @@ server.put('/api/posts/:userId', (req,res)=>{
   }
   db.findById(id)
     .then(result=>{
-      if(result){
       db.update(id, req.body)
         .then(result=>{
           res.status(200).json(result)
         })
         .catch(err =>{
           res.status(400).json({message: "The post with the specified ID does not exist." })
-        })}
+        })
     })
     .catch(err=>res.status(500).json({error:err}))
 
 });
 server.delete('/api/posts/:userId', (req,res)=>{
   const id = req.params.userId;
-  db.findById(id).then(user=>{
-    if(user){
-      db.remove(id).then(user =>{
-        res.status(200).json(user);
-      })
-    }else{
-      res.status(404).json({message: 'the user does not exist'});
-    }
+  db.findById(id)
+    .then(user=>{
+
+        db.remove(id)
+        .then(user =>{
+          res.status(200).json(user);
+        })
+        .catch(err=> res.status(500).json({error: err}))
+    })
+    .catch(err=>res.status(404).json({errorMessage:"User not found"}))
   }
-).catch(err=>res.status(500).json({error:err}));
-});
+);
+
 server.listen(3000,()=>{
   console.log('Server running on http://localhost:3000');
 });
