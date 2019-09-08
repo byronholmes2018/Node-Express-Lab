@@ -1,3 +1,4 @@
+
 const express = require("express");
 const server = express();
 const db = require("./data/db.js");
@@ -74,4 +75,5 @@ server.put("/posts/:id", (req, res) => {
 });
 server.listen(3000, () => {
   console.log("server alive on 3000");
+>>>>>>> master
 });
