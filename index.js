@@ -1,73 +1,79 @@
-// import your node modules
 
-const db = require('./data/db.js');
-const express = require('express');
+const express = require("express");
 const server = express();
+const db = require("./data/db.js");
 
 // add your server code starting here
 server.use(express.json());
-server.get('/',(req, res)=>{
-  res.send('Hello from Express!');
-})
-server.get('/favicon.ico', (req,res)=>{
-  res.status(204)
-})
-server.get('/api/posts', (req,res)=>{
-  const users = db.find().then(users=>{res.send(users)}).catch(err=>res.send(err));
-})
-server.get('/api/posts/:userId',(req,res)=>{
-  const id = req.params.userId;
 
-  db.findById(id).then(user=>{
-    if(user[0].id==id) {
-      res.status(200).json(user)
-    }else{
-      res.status(404).json({message: 'user not found'})
-    }
-
-  }).catch(err=>{res.status(500).json({message: 'The post information could not be retrieved.'})})
+server.get("/posts", (req, res) => {
+  db.find()
+    .then(results => res.status(200).send(results))
+    .catch(err =>
+      res
+        .status(500)
+        .json({ error: "The posts information could not be retrieved" })
+    );
 });
-server.post('/api/posts', (req,res)=>{
-  const userInfo = req.body
-  db.insert(userInfo)
-    .then(result=>{
-      res.status(201).json(result)
+
+server.get("/posts/:id", (req, res) => {
+  db.findById(req.params.id)
+    .then(result => {
+      if (result.length == 0) {
+        res
+          .status(404)
+          .json({ message: "The post with the specified ID does not exist." });
+      }
+      res.status(200).json(result);
     })
-    .catch(err=>res.status(500).json({error: err}))
+    .catch(err => {
+      res
+        .status(500)
+        .json({ error: "The post information could not be retrieved!" });
+    });
 });
-server.put('/api/posts/:userId', (req,res)=>{
-  const id = req.params.userId;
-  if(!req.body.title || !req.body.contents){
-    res.status(400).json({errorMessage: "Please provide contents and title for post"})
+server.post("/posts", (req, res) => {
+  if (!req.body.title || !req.body.contents) {
+    req.statusCode(400).json({
+      errorMessage: "Please provide title and contents for the post."
+    });
   }
-  db.findById(id)
-    .then(result=>{
-      db.update(id, req.body)
-        .then(result=>{
-          res.status(200).json(result)
-        })
-        .catch(err =>{
-          res.status(400).json({message: "The post with the specified ID does not exist." })
-        })
+  db.insert(req.body)
+    .then(result => {
+      res.status(201).json(result);
     })
-    .catch(err=>res.status(500).json({error:err}))
-
+    .catch(err => {
+      res.status(500).json(err);
+    });
 });
-server.delete('/api/posts/:userId', (req,res)=>{
-  const id = req.params.userId;
-  db.findById(id)
-    .then(user=>{
 
-        db.remove(id)
-        .then(user =>{
-          res.status(200).json(user);
-        })
-        .catch(err=> res.status(500).json({error: err}))
-    })
-    .catch(err=>res.status(404).json({errorMessage:"User not found"}))
+server.delete("/posts/:id", (req, res) => {
+  db.remove(req.params.id)
+    .then(result => {})
+    .catch(err => {});
+});
+
+server.put("/posts/:id", (req, res) => {
+  if (!req.body.title || !req.body.contents) {
+    res.status(400).json({ message: "Please provide a title and contents" });
   }
-);
-
-server.listen(3000,()=>{
-  console.log('Server running on http://localhost:3000');
+  db.update(req.params.id, req.body)
+    .then(result => {
+      if (!result) {
+        res
+          .status(404)
+          .json({ message: "The post with the specified ID does not exist." });
+      } else {
+        res.status(200).json(result);
+      }
+    })
+    .catch(err => {
+      res
+        .status(500)
+        .json({ message: "The post information could not be modified." });
+    });
+});
+server.listen(3000, () => {
+  console.log("server alive on 3000");
+>>>>>>> master
 });
